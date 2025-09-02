@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  user
+  admin
+}
+
+model Users {
+  id                     String   @id @default(uuid()) @db.Uuid
+  username               String
+  user_email             String   @unique
+  user_password          String
+  profile_picture_url    String   @default("")
+  bio                    String   @default("")
+  account_status         Boolean  @default(true)
+  social_links           String[] @default([])
+  email_verified         Boolean  @default(false)
+  mentor_specializations String[] @default([])
+  mentor_verived         Boolean  @default(false)
+  role                   Role     @default(user)
+  auth_token             String[] @default([])
+  createAt               DateTime @default(now())
+  updateAt               DateTime @updatedAt
+}
+
+model Product {
+  id           String         @id @default(uuid())
+  title        String
+  image        String
+  price        Float
+  category     String
+  description  String
+  features     String[]
+  tools        Tols[]         @relation("ProductTools")
+  rating       Float          @default(0)
+  sales        Int            @default(0)
+  status       Status         @default(Active)
+  revenue      Float          @default(0)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  reviews      Review[]
+  ProductTools ProductTools[]
+}
+
+model Tols {
+  id           String         @id @default(uuid())
+  name         String         @unique
+  icon         String
+  products     Product[]      @relation("ProductTools")
+  ProductTools ProductTools[]
+}
+
+model Order {
+  id          String   @id @default(uuid()) @db.Uuid
+  user_id     String
+  product_id  String
+  total_price Int
+  status      String
+  createAt    DateTime @default(now())
+  updateAt    DateTime @updatedAt
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  user      String
+  rating    Int
+  date      DateTime @default(now())
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+}
+
+model ProductTools {
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId String
+  tool      Tols    @relation(fields: [tolsId], references: [id], onDelete: Cascade)
+  tolsId    String
+
+  @@id([productId, tolsId])
+}
+
+enum Status {
+  Active
+  Inactive
+}
