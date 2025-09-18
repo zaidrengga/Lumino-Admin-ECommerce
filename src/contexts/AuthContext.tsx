@@ -1,10 +1,10 @@
 "use client";
 
-import { User } from "@/lib/types";
+import { Users } from "@/generated/prisma";
 import { createContext, useContext, useEffect, useState } from "react";
 
 interface AuthContextType {
-    user: User | null;
+    user: Users | null;
     loading: boolean;
     login: (email: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
@@ -13,27 +13,28 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<Users | null>(null);
     const [loading, setLoading] = useState(true);
 
     // fetch user saat pertama load
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const res = await fetch("/api/auth", {
+                const res = await fetch("/api/auth/login", {
                     method: "GET",
                     credentials: "include",
+                    headers: { "Content-Type": "application/json" },
                 });
 
                 if (!res.ok) {
-                    setUser(null);
-                } else {
-                    const data = await res.json();
-                    setUser(data);
+                    console.error("Error fetching user:", res.statusText);
                 }
+
+                const data = await res.json();
+                setUser(data);
+                return data;
             } catch (error) {
-                console.error("Failed to fetch user", error);
-                setUser(null);
+                console.error("Error fetching user:", error);
             } finally {
                 setLoading(false);
             }
@@ -43,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }, []);
 
     const login = async (email: string, password: string) => {
-        const res = await fetch("/api/auth", {
+        const res = await fetch("/api/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",

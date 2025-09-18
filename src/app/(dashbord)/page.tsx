@@ -1,3 +1,5 @@
+"use client";
+
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowUpRight, BanknoteArrowUp, ListOrdered, Package } from 'lucide-react';
 import React from 'react';
@@ -5,13 +7,22 @@ import clsx from 'clsx';
 import Link from 'next/link';
 import { CardChartArea } from '@/components/template/CardChartArea';
 import { Button } from '@/components/ui/button';
+import Loading from '@/components/ui/loding';
+import { useCrud } from '@/hooks/use-crud';
+import { ProductData } from '@/lib/types';
+import { Notification, Order } from '@/generated/prisma';
+import { formatRupiah, formattedDate } from '@/lib/utils';
 
 const Home = () => {
+  const { items: products, loading: loadingProduct } = useCrud<ProductData>("products");
+  const { items: orders, loading: loadingOrder } = useCrud<Order>("orders");
+  const { items: notification, loading: loadingNotification } = useCrud<Notification>("notifications");
+
   const data = [
     {
       id: 1,
       title: 'Penjualan',
-      value: 'Rp 1.000.000',
+      value: formatRupiah(orders.filter((order) => order.status === "Finished").reduce((total, order) => total + order.total_price, 0)) || "Rp 0",
       link: '#',
       icon: BanknoteArrowUp,
       color: 'text-green-500',
@@ -19,61 +30,36 @@ const Home = () => {
     {
       id: 2,
       title: 'Produk',
-      value: '100',
-      link: '#',
+      value: products.length.toString(),
+      link: '/products',
       icon: Package,
       color: 'text-blue-500',
     },
     {
       id: 3,
       title: 'Order',
-      value: '20',
-      link: '#',
+      value: orders.length.toString(),
+      link: '/orders',
       icon: ListOrdered,
       color: 'text-yellow-500',
     },
   ];
 
-  const chartData = [
-    { date: "Jan", value: 120 },
-    { date: "Feb", value: 200 },
-    { date: "Mar", value: 150 },
-    { date: "Apr", value: 300 },
-    { date: "Mei", value: 250 },
-  ];
+  const acktivitasTerbaru = notification.slice(0, 4);
 
-  const acktivitasTerbaru = [
-    {
-      id: 1,
-      title: 'Order #1234 dibuat',
-      date: '2023-06-01',
-      link: '#',
-    },
-    {
-      id: 2,
-      title: 'Produk Laptop ditambahkan',
-      date: '2023-06-02',
-      link: '#',
-    },
-    {
-      id: 3,
-      title: 'Order #5678 dibuat',
-      date: '2023-06-03',
-      link: '#',
-    },
-  ]
+  if (loadingProduct || loadingOrder || loadingNotification) return <Loading />
 
   return (
     <div className="flex flex-col gap-4">
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
           <CardContent>
-            <h1 className="text-3xl font-bold">
+            <h1 className="text-2xl font-bold">
               Selamat Datang di <br />
-              <span className="text-primary">Dashboard Lumino</span>
+              <span className="text-3xl text-primary">Dashboard Lumino</span>
             </h1>
             <p className="text-muted-foreground">
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quae.
+              Dashboard ini digunakan untuk mengelola penjualan dan produk di Lumino.
             </p>
           </CardContent>
         </Card>
@@ -92,32 +78,66 @@ const Home = () => {
         </div>
       </section>
 
+      <CardChartArea
+        orders={orders.map(o => ({
+          ...o,
+          createAt: o.createAt.toString(),
+        }))}
+        label='Penjualan'
+        title='Grafik Penjualan'
+        subtitle='Grafik penjualan Produk Lumino'
+      />
       <section className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
-        <CardChartArea
-          data={chartData}
-          label='Penjualan'
-          title='Grafik Penjualan'
-          subtitle='Grafik penjualan bulan ini'
-        />
         <Card>
           <CardContent>
             <h2 className="text-lg font-semibold mb-2">Aktivitas Terbaru</h2>
             <ul className="space-y-2">
-              {acktivitasTerbaru.map((item) => (
-                <li key={item.id} className="flex justify-between border rounded-lg p-2 hover:scale-105 hover:shadow-md transition-all">
-                  <div className="flex flex-col">
-                    <span className="font-semibold">{item.title}</span>
-                    <span className="text-muted-foreground text-sm">{item.date}</span>
-                  </div>
-                  <Button variant="link" asChild>
-                    <Link href={item.link}>Lihat Detail <ArrowUpRight /></Link>
-                  </Button>
+              {acktivitasTerbaru.length > 0 ? (
+                acktivitasTerbaru.map((item) => (
+                  <li key={item.id} className="flex justify-between border rounded-lg p-2 hover:scale-[1.02] hover:shadow-md transition-all">
+                    <div className="flex flex-col">
+                      <span className="font-semibold">{item.content}</span>
+                      <span className="text-muted-foreground text-sm">{formattedDate(item.createdAt)}</span>
+                    </div>
+                    <Button variant="link" asChild>
+                      <Link href={item.link || "#"}>Lihat Detail <ArrowUpRight /></Link>
+                    </Button>
+                  </li>
+                ))
+              ) : (
+                <li className="flex items-center justify-center">
+                  <span className="text-muted-foreground">Tidak ada aktivitas terbaru</span>
                 </li>
-              ))}
+              )}
             </ul>
           </CardContent>
         </Card>
 
+
+        <Card>
+          <CardContent>
+            <h2 className='text-lg font-semibold mb-2'>Produk Terbaru</h2>
+            <ul className="space-y-2">
+              {products.length > 0 ? (
+                products.map((item) => (
+                  <li key={item.id} className="flex justify-between border rounded-lg p-2 hover:scale-[1.02] hover:shadow-md transition-all">
+                    <div className="flex flex-col">
+                      <span className="font-semibold">{item.title}</span>
+                      <span className="text-muted-foreground text-sm">{formatRupiah(item.price)}</span>
+                    </div>
+                    <Button variant="link" asChild>
+                      <Link href={`/products/${item.id}`}>Lihat Detail <ArrowUpRight /></Link>
+                    </Button>
+                  </li>
+                ))
+              ) : (
+                <li className="flex items-center justify-center">
+                  <span className="text-muted-foreground">Tidak ada produk terbaru</span>
+                </li>
+              )}
+            </ul>
+          </CardContent>
+        </Card>
       </section>
     </div>
   );

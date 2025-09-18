@@ -38,6 +38,11 @@ const listNavigasi = [
         href: "/notifications",
         icons: BellRing,
     },
+    {
+        title: "Users",
+        href: "/users",
+        icons: Users2,
+    },
 ]
 
 export function AppSidebar() {

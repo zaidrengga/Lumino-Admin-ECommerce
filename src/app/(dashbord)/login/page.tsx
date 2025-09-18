@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
+import Loading from "@/components/ui/loding";
 
 export default function LoginPage() {
-    const { login } = useAuth();
+    const { login, loading: authLoading } = useAuth();
     const router = useRouter();
 
     const [showPassword, setShowPassword] = useState(false);
@@ -38,6 +39,7 @@ export default function LoginPage() {
         }
     };
 
+    if (authLoading || loading) return <Loading />
     return (
         <div className="bg-accent shadow-md rounded-2xl p-8 w-full max-w-md">
             <h1 className="text-2xl font-semibold mb-6 text-center">Login To <span className="text-primary font-bold">Lumino Dashboard</span></h1>

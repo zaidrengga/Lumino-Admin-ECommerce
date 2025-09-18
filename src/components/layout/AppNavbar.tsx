@@ -2,20 +2,35 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { ModeToggle } from "../ui/mode-toggel"
-import { SidebarTrigger } from "../ui/sidebar"
+import { SidebarTrigger, useSidebar } from "../ui/sidebar"
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
+import Link from "next/link";
+import { Bell } from "lucide-react";
+import { NotificationData } from "@/lib/types";
+import { useCrud } from "@/hooks/use-crud";
+import { Badge } from "../ui/badge";
 
 const AppNavbar = () => {
     const { user, logout } = useAuth();
+    const { isMobile, open } = useSidebar()
+    const {items: notifications} = useCrud<NotificationData>("notifications")
 
     return (
-        <header className='sticky top-0 z-50 p-2 bg-background'>
+        <header className={`fixed inset-x-0 top-0 z-50 p-2 bg-background ${isMobile ? "" : `${open ? "left-[16rem]" : "left-[4rem]"}`} transform transition-all duration-300`}>
             <nav className='w-full bg-sidebar rounded-lg shadow flex items-center justify-between p-1.5 border'>
                 <div>
                     <SidebarTrigger />
                 </div>
                 <div className='flex items-center gap-2'>
+                    <Button variant="outline" size="icon" asChild className="relative rounded-full">
+                        <Link href="/notifications">
+                            <Bell />
+                            <Badge className="absolute -top-1 -right-1 rounded-full h-4 w-4 text-xs" variant="destructive">
+                                {notifications.filter((n) => !n.isRead).length}
+                            </Badge>
+                        </Link>
+                    </Button>
                     <Popover>
                         <PopoverTrigger asChild>
                             <Button variant="outline" size="icon">

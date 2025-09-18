@@ -20,58 +20,65 @@ enum Role {
 }
 
 model Users {
-  id                     String   @id @default(uuid()) @db.Uuid
+  id                     String         @id @default(uuid()) @db.Uuid
   username               String
-  user_email             String   @unique
+  user_email             String         @unique
   user_password          String
-  profile_picture_url    String   @default("")
-  bio                    String   @default("")
-  account_status         Boolean  @default(true)
-  social_links           String[] @default([])
-  email_verified         Boolean  @default(false)
-  mentor_specializations String[] @default([])
-  mentor_verived         Boolean  @default(false)
-  role                   Role     @default(user)
-  auth_token             String[] @default([])
-  createAt               DateTime @default(now())
-  updateAt               DateTime @updatedAt
+  profile_picture_url    String         @default("")
+  bio                    String         @default("")
+  account_status         Boolean        @default(true)
+  social_links           String[]       @default([])
+  email_verified         Boolean        @default(false)
+  mentor_specializations String[]       @default([])
+  mentor_verived         Boolean        @default(false)
+  role                   Role           @default(user)
+  auth_token             String[]       @default([])
+  createAt               DateTime       @default(now())
+  updateAt               DateTime       @updatedAt
+  Notification           Notification[]
 }
 
 model Product {
-  id           String         @id @default(uuid())
-  title        String
-  image        String
-  price        Float
-  category     String
-  description  String
-  features     String[]
-  tools        Tols[]         @relation("ProductTools")
-  rating       Float          @default(0)
-  sales        Int            @default(0)
-  status       Status         @default(Active)
-  revenue      Float          @default(0)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  reviews      Review[]
-  ProductTools ProductTools[]
+  id          String   @id @default(uuid())
+  title       String
+  image       String
+  price       Float
+  category    String
+  description String
+  features    String[]
+  demo        String?
+  tools       Tols[]   @relation("ProductTools")
+  rating      Float    @default(0)
+  sales       Int      @default(0)
+  status      Status   @default(Active)
+  revenue     Float    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  reviews     Review[]
 }
 
 model Tols {
-  id           String         @id @default(uuid())
-  name         String         @unique
-  icon         String
-  products     Product[]      @relation("ProductTools")
-  ProductTools ProductTools[]
+  id       String    @id @default(uuid())
+  name     String    @unique
+  icon     String
+  products Product[] @relation("ProductTools")
 }
 
 model Order {
-  id          String   @id @default(uuid()) @db.Uuid
+  id          String      @id
   user_id     String
   product_id  String
   total_price Int
-  status      String
-  createAt    DateTime @default(now())
-  updateAt    DateTime @updatedAt
+  status      StatusOrder @default(Panding)
+  createAt    DateTime    @default(now())
+  updateAt    DateTime    @updatedAt
+}
+
+enum StatusOrder {
+  Panding
+  Process
+  Finished
+  Cancelled
 }
 
 model Review {
@@ -83,16 +90,26 @@ model Review {
   productId String
 }
 
-model ProductTools {
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  productId String
-  tool      Tols    @relation(fields: [tolsId], references: [id], onDelete: Cascade)
-  tolsId    String
-
-  @@id([productId, tolsId])
-}
-
 enum Status {
   Active
   Inactive
+}
+
+enum NotificationType {
+  PRODUCT_CREATED
+  PRODUCT_UPDATED
+  NEW_ORDER_RECEIVED
+  ORDER_STATUS
+  NEW_REVIEW_SUBMITTED
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  content   String
+  isRead    Boolean          @default(false)
+  type      NotificationType
+  link      String?
+  createdAt DateTime         @default(now())
+  user      Users            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String           @db.Uuid
 }

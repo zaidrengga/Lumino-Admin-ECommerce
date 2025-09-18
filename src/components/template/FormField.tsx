@@ -7,6 +7,7 @@ import { Textarea } from "../ui/textarea";
 import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger } from "../ui/select";
 import { Button } from "../ui/button";
 import { Check, Plus, X } from "lucide-react";
+import Link from "next/link";
 
 // FORM INPUT
 
@@ -33,7 +34,7 @@ export const FormTextrea: React.FC<FormTextreaProps> = ({ label, id, ...props })
     return (
         <div className="space-y-2">
             <Label htmlFor={id}>{label}</Label>
-            <Textarea id={id} {...props} />
+            <Textarea id={id} {...props} className="h-52" />
         </div>
     );
 };
@@ -51,6 +52,8 @@ interface FormSelectProps {
     onChange?: (value: string | string[]) => void;
     required?: boolean;
     multiple?: boolean;
+    addNew?: boolean;
+    addNewLink?: string
 }
 
 export const FormSelect: React.FC<FormSelectProps> = ({
@@ -62,6 +65,8 @@ export const FormSelect: React.FC<FormSelectProps> = ({
     onChange,
     required,
     multiple = false,
+    addNew = false,
+    addNewLink
 }) => {
     const [search, setSearch] = useState("");
 
@@ -126,6 +131,15 @@ export const FormSelect: React.FC<FormSelectProps> = ({
                             ) : null}
                         </SelectItem>
                     ))}
+                    {addNew && (
+                        <Button
+                            asChild
+                            variant="outline"
+                            className="w-full mt-4"
+                        >
+                            <Link href={addNewLink || "#"}><Plus /> Tambah {label}</Link>
+                        </Button>
+                    )}
                 </SelectContent>
             </Select>
         </div>

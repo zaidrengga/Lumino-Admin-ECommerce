@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { Label } from "@/components/ui/label";
+import { imageLoader } from "../ui/image-loader";
 
 interface Props {
     label: string;
@@ -46,7 +47,7 @@ export const FormImageCloudinary: React.FC<Props> = ({ label, value, onChange })
             <Label>{label}</Label>
             <div className="border-2 relative border-dashed rounded-lg p-6 flex flex-col items-center justify-center cursor-pointer hover:bg-foreground/20">
                 {preview ? (
-                    <Image src={preview} alt="Preview" width={200} height={200} />
+                    <Image loader={imageLoader}  src={preview} alt="Preview" width={200} height={200} />
                 ) : (
                     <p className="text-gray-500">{uploading ? "Uploading..." : "Drag & drop or click to upload"}</p>
                 )}
