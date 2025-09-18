@@ -13,36 +13,15 @@ import { formatRupiah, formattedDate } from '@/lib/utils';
 import { useCrud } from '@/hooks/use-crud';
 import { ProductData } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/contexts/AuthContext';
-import { Order } from '@/generated/prisma';
+import Link from 'next/link';
 
 const ProductByIdPage = () => {
     const { items: products, loading, remove: deleteProduct } = useCrud<ProductData>("products");
-    const { add: addOrder } = useCrud<Order>("orders");
-    const { user } = useAuth();
 
     const { id } = useParams();
     const router = useRouter();
 
     const product = products.find((p) => p.id === id);
-
-    const handleAddOrder = async () => {
-        try {
-            await addOrder({
-                id: "",
-                user_id: user?.id as string,
-                product_id: id as string,
-                total_price: product?.price as number,
-                status: "Panding",
-                createAt: new Date(),
-                updateAt: new Date(),
-            });
-            toast.success("Product added to cart");
-        } catch (error) {
-            console.error(error);
-            toast.error("Failed to add product to cart");
-        }
-    }
 
 
     if (loading) return <Loading />;
@@ -52,7 +31,7 @@ const ProductByIdPage = () => {
         try {
             await deleteProduct(product.id);
             toast.success("Product deleted successfully");
-            router.push("/products"); // redirect ke list produk
+            router.push("/products");
         } catch (error) {
             console.error(error);
             toast.error("Failed to delete product");
@@ -106,8 +85,8 @@ const ProductByIdPage = () => {
                             <Button variant="destructive" onClick={handleDelete}>
                                 Delete
                             </Button>
-                            <Button onClick={handleAddOrder}>
-                                Add Order
+                            <Button asChild>
+                                <Link href={product.demo || "#"}>Demo</Link>
                             </Button>
                         </div>
                     </CardContent>
